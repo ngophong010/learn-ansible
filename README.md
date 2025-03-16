@@ -146,7 +146,12 @@ winrm quickconfig
 ```
 - Press `Y` to confirm if prompted.
 
-3. Fix Network Category (if Public):
+- Allow connection:
+```powershell
+Set-Item WSMan:\localhost\Service\Auth\Basic -Value $true
+Set-Item WSMan:\localhost\Service\AllowUnencrypted -Value $true
+```
+1. Fix Network Category (if Public):
 - Check network profile:
 ```powershell
 Get-NetConnectionProfile
@@ -159,20 +164,20 @@ Set-NetConnectionProfile -InterfaceAlias "Wi-Fi" -NetworkCategory Private
 ```powershell
 Get-NetConnectionProfile
 ```
-4. Re-run WinRM Configuration:
+1. Re-run WinRM Configuration:
 ```powershell
 winrm quickconfig
 ```
-5. Allow Basic Authentication and Unencrypted Traffic (for testing):
+1. Allow Basic Authentication and Unencrypted Traffic (for testing):
 ```powershell
 Set-Item WSMan:\localhost\Service\Auth\Basic -Value $true
 Set-Item WSMan:\localhost\Service\AllowUnencrypted -Value $true
 ```
-6. Open WinRM Port in Firewall:
+1. Open WinRM Port in Firewall:
 ```powershell
 New-NetFirewallRule -Name "WinRM HTTP" -DisplayName "WinRM HTTP" -Enabled True -Direction Inbound -Protocol TCP -Action Allow -LocalPort 5985
 ```
-7. Verify WinRM:
+1. Verify WinRM:
 ```powershell
 winrm enumerate winrm/config/listener
 ```
@@ -182,7 +187,7 @@ Step 2: Configure Ansible Inventory
 ```bash
 cd /etc/ansible
 ```
-2. Edit the Default Inventory File:
+1. Edit the Default Inventory File:
 - Open the hosts file:
 ```bash
 sudo nano /etc/ansible/hosts
@@ -194,7 +199,7 @@ sudo nano /etc/ansible/hosts
 ```
 - Replace `YourPassword` with the actual password for the `Administrator` account on `10.0.0.1`.
 - Save and exit (Ctrl+O, Enter, Ctrl+X).
-3. Alternative: Use a Custom Inventory File:
+1. Alternative: Use a Custom Inventory File:
 - Create a directory and file:
 ```bash
 mkdir -p ~/ansible
@@ -216,7 +221,7 @@ ansible windows -m win_ping
 ```bash
 ansible -i ~/ansible/inventory.ini windows -m win_ping
 ```
-2. Expected Output:
+1. Expected Output:
 ```text
 10.0.0.1 | SUCCESS => {
     "changed": false,
