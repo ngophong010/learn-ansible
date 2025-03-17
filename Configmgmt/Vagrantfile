@@ -1,0 +1,65 @@
+Vagrant.configure("2") do |config|
+    # Define the servers with updated box and resource tweaks
+    servers = [
+      {
+        :hostname => "db01",
+        :box => "bento/ubuntu-22.04", # Updated to LTS version
+        :ip => "192.168.169.130",
+        :ssh_port => "2210",
+        :memory => 4096, # Increased for DB workload
+        :cpus => 2
+      },
+      {
+        :hostname => "web01",
+        :box => "bento/ubuntu-22.04",
+        :ip => "192.168.169.131",
+        :ssh_port => "2211",
+        :memory => 2048,
+        :cpus => 1
+      },
+      {
+        :hostname => "web02",
+        :box => "bento/ubuntu-22.04",
+        :ip => "192.168.169.132",
+        :ssh_port => "2212",
+        :memory => 2048,
+        :cpus => 1
+      },
+      {
+        :hostname => "loadbalancer",
+        :box => "bento/ubuntu-22.04",
+        :ip => "192.168.169.134",
+        :ssh_port => "2213",
+        :memory => 2048,
+        :cpus => 1
+      }
+    ]
+  
+    # Iterate over each server configuration
+    servers.each do |machine|
+      config.vm.define machine[:hostname] do |node|
+        # Base configuration
+        node.vm.box = machine[:box]
+        node.vm.hostname = machine[:hostname]
+  
+        # Network configuration (bridged with dynamic interface selection)
+        node.vm.network "public_network", ip: machine[:ip], bridge: nil # Prompts for interface
+        node.vm.network "forwarded_port", guest: 22, host: machine[:ssh_port], id: "ssh"
+  
+        # VirtualBox provider settings
+        node.vm.provider "virtualbox" do |vb|
+          vb.name = machine[:hostname]
+          vb.memory = machine[:memory]
+          vb.cpus = machine[:cpus]
+          vb.customize ["modifyvm", :id, "--natdnshostresolver1", "on"] # Improve DNS resolution
+        end
+  
+        # Optional provisioning (example: install basic tools)
+        node.vm.provision "shell", inline: <<-SHELL
+          sudo apt-get update
+          sudo apt-get install -y curl net-tools
+          echo "VM #{machine[:hostname]} provisioned successfully" > /home/vagrant/provision.log
+        SHELL
+      end
+    end
+  end
